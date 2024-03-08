@@ -15,7 +15,7 @@ I have created a software product that allows product managers to add a product 
 
 - VS Code
 - SQLite Python
-- Tkinter
+- Tkinter Library
 
 # Useful Websites
 
