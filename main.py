@@ -5,23 +5,32 @@ from tkinter import OptionMenu
 from tkinter import Toplevel
 from tkinter.font import Font
 
+# Create the main window
 root = Tk()
 root.title("Inventory Management System")
 
+# Function to center the window on the screen
 def center_window(window, width, height):
+    # Get screen dimensions
     screen_width = window.winfo_screenwidth()
     screen_height = window.winfo_screenheight()
 
+    # Calculate coordinates to center window
     x = (screen_width / 2) - (width / 2)
     y = (screen_height / 2) - (height / 2)
 
+    # Set window geometry
     window.geometry(f"{width}x{height}+{int(x)}+{int(y)}")
 
-center_window(root, 1030, 700)
-root.geometry('1030x700')
+# Set main window size and background color
+center_window(root, 1030, 800)
+root.geometry('1030x800')
 root.configure(bg="#80ECFF")
 
+# Initialize Treeview widget
 my_tree = ttk.Treeview(root)
+
+# Set store name and font
 storeName = "Mastery Protein"
 my_font = Font(
     family = 'Helvetica',
@@ -29,8 +38,8 @@ my_font = Font(
     weight = 'bold',
     slant = 'roman',
 )
-# tableFont = 'FixedSys'
 
+# Try connecting to the database and creating a table if it doesn't exist
 try:
     connection = sqlite3.connect("data.db")
     cursor = connection.cursor()
@@ -40,18 +49,22 @@ try:
                        inventory(itemId TEXT, itemName TEXT, itemPrice TEXT, itemPack Text, itemQuantity TEXT, itemUtah Text, itemTexas TEXT, itemFlorida TEXT)""")
 except sqlite3.Error as e:
     print("SQLite error:", e)
-    
+
+# Function to reverse tuples 
 def reverse(tuples):
     return tuples[::-1]
 
+# Function to insert data into the database
 def insert(id, name, price, pack, quantity, utah, texas, florida):
     cursor.execute("INSERT INTO inventory (itemId, itemName, itemPrice, itemPack, itemQuantity, itemUtah, itemTexas, itemFlorida) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (id, name, price, pack, quantity, utah, texas, florida))
     connection.commit()
 
+# Function to delete data from the database
 def delete(data):
     cursor.execute("DELETE FROM inventory WHERE itemId =?", (data,))
     connection.commit()
 
+# Function to update data in the database
 def update(idName, quantity=None, utah=None, texas=None, florida=None):
     cursor.execute("SELECT * FROM inventory WHERE itemId = ?", (idName,))
     existing_data = cursor.fetchone()
@@ -72,16 +85,19 @@ def update(idName, quantity=None, utah=None, texas=None, florida=None):
     else:
         print("Item not found in the inventory.")
 
+# Function to read data from the database
 def read():
     cursor.execute("SELECT * FROM inventory")
     results = cursor.fetchall()
     connection.commit()
     return results
 
+#Function to set name by selected ID 
 def update_selected_id(*args):
     id_index = id_options.index(selected_id.get())
     selected_name.set(name_options[id_index // 2])
 
+# Function to insert data into the database
 def insert_data():
     itemId = selected_id.get().strip()
     itemName = selected_name.get().strip()
@@ -90,6 +106,7 @@ def insert_data():
         print("ERROR: Id and Product Name are required.")
         return
     
+    # Set pack size and price based on ID
     if itemId.endswith("12"):
         itemPack = "12"
         itemPrice = "$39.99"
@@ -100,6 +117,7 @@ def insert_data():
         print("Invalid ID format.")
         return
     
+    # Data for total quantity math
     itemUtah = entryUtah.get().strip()
     itemTexas = entryTexas.get().strip()
     itemFlorida = entryFlorida.get().strip()
@@ -113,6 +131,7 @@ def insert_data():
     insert(itemId, itemName, itemPrice, itemPack, str(total_quantity), itemUtah, itemTexas, itemFlorida)
     update_tree()
 
+# Function to delete data from the database
 def delete_data():
     selected_items = my_tree.selection()
     if selected_items:
@@ -123,12 +142,14 @@ def delete_data():
     else:
         print("No item selected for deletion.")
 
+# Function to update data in the database
 def update_data():
     selected_items = my_tree.selection()
     if selected_items:
         selected_item = selected_items[0]
         update_id = my_tree.item(selected_item)['values'][0]
 
+        # Gets quantities
         new_utah = entryUtah.get()
         new_texas = entryTexas.get()
         new_florida = entryFlorida.get()
@@ -137,6 +158,7 @@ def update_data():
         current_vales = cursor.fetchone()
         current_utah, current_texas, current_florida = current_vales
 
+        # Checks quanties
         if not new_utah:
             new_utah = current_utah
         if not new_texas:
@@ -150,7 +172,8 @@ def update_data():
         update_tree()
     else:
         print("No item selected for update.")
-    
+
+# Funtion to update the Treeview widget with database data
 def update_tree():
     for data in my_tree.get_children():
         my_tree.delete(data)
@@ -161,6 +184,7 @@ def update_tree():
       
         my_tree.insert(parent='', index='end', iid=idx, text="", values=values, tags=("orow",))
 
+        # Tags a row if quantities drop below 200
         my_tree.item(idx, tags=("orow",))
         for col, cell_value in enumerate(result[5:], start=5):
             try:
@@ -173,11 +197,13 @@ def update_tree():
                 pass
     clear_fields()
 
+# Function to clear entry fields
 def clear_fields():
     entryUtah.delete(0, 'end')
     entryTexas.delete(0, 'end')
     entryFlorida.delete(0, 'end')    
 
+# Function to sort Treeview by a specific column
 def sort_treeview(column_name):
     cursor.execute(f"SELECT * FROM inventory ORDER BY {column_name}")
     sorted_data = cursor.fetchall()
@@ -188,6 +214,7 @@ def sort_treeview(column_name):
     for idx, row in enumerate(sorted_data, start=1):
         my_tree.insert("", "end", values=row)
 
+# Function to create a window for sorting options
 def sort_by():
     sort_window = Toplevel(root)
     sort_window.title("Sort By")
@@ -207,21 +234,21 @@ def sort_by():
         sort_treeview(colunm_name)
         sort_window.destroy()
 
-# input and table data fields
+# Labels for input and table data fields
 idLabel = Label(root, text="ID", font=my_font, bg="#80ECFF")
 nameLabel = Label(root, text="Flavor", font=my_font, bg="#80ECFF")
-# quantityLabel = Label(root, text="Total Quantity", font=my_font, bg="#80ECFF")
 utahLabel = Label(root, text="Utah Qty", font=my_font, bg="#80ECFF")
 texasLabel = Label(root, text="Texas Qty", font=my_font, bg="#80ECFF")
 floridaLabel = Label(root, text="Florida Qty", font=my_font, bg="#80ECFF")
 
+# Position labels
 idLabel.grid(row=1, column=0, padx=10, pady=10)
 nameLabel.grid(row=2, column=0, padx=10, pady=10)
-# quantityLabel.grid(row=1, column=4, padx=10, pady=10)
 utahLabel.grid(row=1, column=4, padx=10, pady=10)
 texasLabel.grid(row=2, column=4, padx=10, pady=10)
 floridaLabel.grid(row=3, column=4, padx=10, pady=10)
 
+# ID and Flavor Tuple
 id_name_tuples = [
     ("TS112", "TS124", "Tropical Sunrise"),
     ("IB212", "IB224", "Icy Berry"),
@@ -235,31 +262,30 @@ id_name_tuples = [
     ("BB1012", "BB1024", "Blackberry Blast")
 ]
 
+# Logic to create dropdown menus for ID and Product Name
 id_options = [item for pair in id_name_tuples for item in pair[:2]]
 name_options = [pair[2] for pair in id_name_tuples]
-
 selected_id = StringVar()
 selected_id.set(id_options[0])
 selected_id.trace_add("write", update_selected_id)
-
 selected_name = StringVar()
 selected_name.set(name_options[0])
 
+# Dropdown menus and entry fields
 id_option_menu = OptionMenu(root, selected_id, *id_options)
 name_option_menu = OptionMenu(root, selected_name, *name_options)
-# entryQuantity = Entry(root, width=15, bd=5, font=my_font, state='readonly')
 entryUtah = Entry(root, width=15, bd=5, font=my_font)
 entryTexas = Entry(root, width=15, bd=5, font=my_font)
 entryFlorida = Entry(root, width=15, bd=5, font=my_font)
 
+# Position dropdown menus and entry fields
 id_option_menu.grid(row=1, column=1, columnspan=2, padx=5, pady=5, sticky="ew")
 name_option_menu.grid(row=2, column=1, columnspan=2, padx=5, pady=5, sticky="ew")
-# entryQuantity.grid(row=1, column=5, columnspan=2, padx=5, pady=5)
 entryUtah.grid(row=1, column=5, columnspan=2, padx=5, pady=5)
 entryTexas.grid(row=2, column=5, columnspan=2, padx=5, pady=5)
 entryFlorida.grid(row=3, column=5, columnspan=2, padx=5, pady=5)
 
-
+# Buttons for data manipulation
 buttonEnter = Button(root, text="Enter", padx=15, pady=5, width=5, bd=3, font=my_font, bg="#3658E1", fg="#FBFFF1", command=insert_data)
 buttonEnter.grid(row=4, column=1, columnspan=1)
 
@@ -272,7 +298,7 @@ buttonDelete.grid(row=4, column=2, columnspan=1)
 buttonSortBy = Button(root, text="Sort By", padx=15, pady=5, width=5, bd=3, font=my_font, bg="#14F195", fg="#FBFFF1", command=sort_by)
 buttonSortBy.grid(row=4,column=3, columnspan=1)
 
-
+# Configure Treeview widget
 style = ttk.Style()
 style.configure("Treeview", font=my_font, rowheight=30 , padding=15, fg="#0A2AAE")
 
@@ -296,15 +322,15 @@ my_tree.heading("Texas", text="Texas Qty", anchor=W)
 my_tree.heading("Florida", text="Florida Qty", anchor=W)
 
 my_tree.tag_configure('orow', font=my_font, foreground="#0A2AAE")
-my_tree.grid(row=6, column=0, columnspan=8, padx=15, pady=(15,45))
-
 my_tree.tag_configure("utah_red", background="red")
 my_tree.tag_configure("texas_red", background="red")
 my_tree.tag_configure("florida_red", background="red")
+my_tree.grid(row=6, column=0, columnspan=8, padx=15, pady=(15,45))
 
 titleLabel = Label(root, text=storeName, font=('Helvetica', 30, 'bold'), bd=2, bg="#80ECFF")
 titleLabel.grid(row=0, column=0, columnspan=8, padx=20, pady=20)
 
 update_tree()
 
+# Run the program
 root.mainloop()

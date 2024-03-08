@@ -4,9 +4,7 @@ I have created this program as a way to teach myself how to use SQLite commands 
 
 I have created a software product that allows product managers to add a product to the tracking system and designate how much product is stored at each location.  It tallies the 3 locations and shows total quantities as well.  If product changes at one or more location that can be updated and the program recalculates the total quantity.  If the quantity of a flavor at any location drops below 200 that line will turn red as an alert to order more of that flavor.  When stock is replenished and above 200 it will return to normal color.  To add a product, the user needs to merely select the product id from the drop down menu.  It will then set the product name, price, and pack size.  All of that is built into the ID.  The letters are the initials of the flavor, the end 2 numbers indicate if it's a 12 pack or 24 pack with also determines the price. The update button allows quantities to be adjusted and the sort by button reveals 3 new buttons to sort the data by.
 
-{Provide a link to your YouTube demonstration. It should be a 4-5 minute demo of the software running, a walkthrough of the code, and a view of how created the Relational Database.}
-
-[Software Demo Video](http://youtube.link.goes.here)
+[Inventory Management System Walkthrough](https://youtu.be/PjwnravrZ18)
 
 # Relational Database
 
